@@ -116,7 +116,7 @@ mmpose/.mim
 *.pkl
 *.pkl.json
 *.log.json
-*.npy
+# *.npy
 work_dirs/
 docs/**/topics/
 docs/**/papers/*.md
@@ -133,3 +133,6 @@ docs/**/modelzoo.md
 *.pth
 
 *.DS_Store
+
+# virtual linking
+work_dirs
