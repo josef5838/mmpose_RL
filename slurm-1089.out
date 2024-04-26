@@ -1,0 +1,12 @@
++ PARTITION=1
++ JOB_NAME=test
++ CONFIG=/home/rl_course_22/mmpose_RL/configs/body_2d_keypoint/topdown_heatmap/coco/RL-td-hm_res50_8xb64-210e_coco-256x192.py
++ WORK_DIR=/home/rl_course_22/mmpose_RL/work_dirs
++ GPUS=8
++ GPUS_PER_NODE=8
++ CPUS_PER_TASK=5
++ SRUN_ARGS=
+++ dirname /scratch/slurm/spool/job01089/slurm_script
++ PYTHONPATH=/scratch/slurm/spool/job01089/..:
++ srun --job-name=test --gres=gpu:8 --ntasks=8 --ntasks-per-node=8 --cpus-per-task=5 --kill-on-bad-exit=1 python -u tools/train.py /home/rl_course_22/mmpose_RL/configs/body_2d_keypoint/topdown_heatmap/coco/RL-td-hm_res50_8xb64-210e_coco-256x192.py --work-dir=/home/rl_course_22/mmpose_RL/work_dirs --launcher=slurm 2 2 2
+srun: error: Unable to create step for job 1089: Invalid generic resource (gres) specification

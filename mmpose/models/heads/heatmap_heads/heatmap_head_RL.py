@@ -7,12 +7,14 @@ from mmengine.structures import PixelData
 from torch import Tensor, nn
 
 from mmpose.evaluation.functional import pose_pck_accuracy
+from mmpose.models.losses import *
 from mmpose.models.utils.tta import flip_heatmaps
 from mmpose.registry import KEYPOINT_CODECS, MODELS
 from mmpose.utils.tensor_utils import to_numpy
 from mmpose.utils.typing import (ConfigType, Features, OptConfigType,
                                  OptSampleList, Predictions)
 from ..base_head import BaseHead
+import numpy as np
 
 OptIntSeq = Optional[Sequence[int]]
 
@@ -69,6 +71,8 @@ class HeatmapHeadRL(BaseHead):
 
         if init_cfg is None:
             init_cfg = self.default_init_cfg
+        
+        self.emb = np.load("/home/rl_course_22/mmpose_RL/matrix_text_embeddings.npy") 
 
         super().__init__(init_cfg)
 
@@ -126,7 +130,9 @@ class HeatmapHeadRL(BaseHead):
             # self.final_layer = build_conv_layer(cfg)
 
             # create 17*256 language embedding matrix. Use 0.5 for now:
-            self.matrix = torch.ones((out_channels, 256)) / 2
+            # self.matrix = torch.ones((out_channels, 256)) 
+            self.matrix = torch.tensor(self.emb)
+            print("This is the matrix size!!!!", self.matrix.size())
 
         else:
             self.final_layer = nn.Identity()
@@ -217,9 +223,12 @@ class HeatmapHeadRL(BaseHead):
 
         x = self.deconv_layers(x)
         x = self.conv_layers(x)
-        print("This is the x shape before matrix mul!!!", x.shape)
+        
         if self.matrix is not None:
-            x = self.matrix @ x
+            x = x.permute(0,2,3,1)
+            print("This is the x shape before matrix mul!!!", x.shape)
+            x = x @ self.matrix.to(x.device).T
+            x = x.permute(0,3,1,2)
         else:
             print("The matrix is NONE!!!!!")
         # x = self.final_layer(x)
@@ -375,3 +384,7 @@ class HeatmapHeadRL(BaseHead):
                 k_new = k
 
             state_dict[prefix + k_new] = v
+            
+# model = HeatmapHeadRL(2048, 17)
+# out = model.forward((torch.rand(2, 2048, 10, 10), ))
+# print(out.shape)
