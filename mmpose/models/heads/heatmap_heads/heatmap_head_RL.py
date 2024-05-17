@@ -15,6 +15,7 @@ from mmpose.utils.typing import (ConfigType, Features, OptConfigType,
                                  OptSampleList, Predictions)
 from ..base_head import BaseHead
 import numpy as np
+import os
 
 OptIntSeq = Optional[Sequence[int]]
 
@@ -72,7 +73,17 @@ class HeatmapHeadRL(BaseHead):
         if init_cfg is None:
             init_cfg = self.default_init_cfg
         
-        self.emb = np.load("/home/rl_course_22/mmpose_RL/matrix_text_embeddings.npy") 
+        # Get the directory of the current file
+        current_file_dir = os.path.dirname(__file__)
+        embedding_file_name = 'matrix_text_embeddings_B32_512.npy'
+        
+        # Construct the relative path to the .npy file
+        relative_path_to_npy = os.path.join(current_file_dir, '../../../../', embedding_file_name)
+        # Normalize the path
+        absolute_path_to_npy = os.path.normpath(relative_path_to_npy)
+        # Load the .npy file
+        self.emb = np.load(absolute_path_to_npy)
+
 
         super().__init__(init_cfg)
 
@@ -128,11 +139,13 @@ class HeatmapHeadRL(BaseHead):
             #     kernel_size=1)
             # cfg.update(final_layer)
             # self.final_layer = build_conv_layer(cfg)
-
-            # create 17*256 language embedding matrix. Use 0.5 for now:
-            # self.matrix = torch.ones((out_channels, 256)) 
-            self.matrix = torch.tensor(self.emb)
-            print("This is the matrix size!!!!", self.matrix.size())
+            
+            self.linear_mapping = nn.Sequential(
+                    nn.Linear(self.emb.shape[1], 512),
+                    nn.ReLU(),
+                    nn.Linear(512, 256)
+            )
+            
 
         else:
             self.final_layer = nn.Identity()
@@ -224,9 +237,14 @@ class HeatmapHeadRL(BaseHead):
         x = self.deconv_layers(x)
         x = self.conv_layers(x)
         
-        if self.matrix is not None:
+        # map emb to 17 * 256
+        if self.linear_mapping is not None and self.emb is not None:
+            self.matrix = self.linear_mapping(torch.tensor(self.emb))
+            # print("This is the matrix size!!!!", self.matrix.size())
+            
+            # matrix mul
             x = x.permute(0,2,3,1)
-            print("This is the x shape before matrix mul!!!", x.shape)
+            # print("This is the x shape before matrix mul!!!", x.shape)
             x = x @ self.matrix.to(x.device).T
             x = x.permute(0,3,1,2)
         else:

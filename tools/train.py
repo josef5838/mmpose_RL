@@ -102,8 +102,10 @@ def merge_args(cfg, args):
                                  'OptimWrapper', 'AmpOptimWrapper'), \
             '`--amp` is not supported custom optimizer wrapper type ' \
             f'`{optim_wrapper}.'
+
         cfg.optim_wrapper.type = 'AmpOptimWrapper'
         cfg.optim_wrapper.setdefault('loss_scale', 'dynamic')
+        
 
     # resume training
     if args.resume == 'auto':
@@ -150,10 +152,17 @@ def main():
     if 'preprocess_cfg' in cfg:
         cfg.model.setdefault('data_preprocessor',
                              cfg.get('preprocess_cfg', {}))
+    
+
 
     # build the runner from config
     runner = Runner.from_cfg(cfg)
 
+    # freeze backbone weights
+    for p in runner.model.backbone.parameters():
+        p.requires_grad = False
+        # print("runner's backbone requires grad?: ", p.requires_grad)
+        
     # start training
     runner.train()
 

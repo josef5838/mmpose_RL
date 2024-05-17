@@ -33,7 +33,6 @@ default_hooks = dict(checkpoint=dict(save_best='coco/AP', rule='greater'))
 codec = dict(
     type='MSRAHeatmap', input_size=(192, 256), heatmap_size=(48, 64), sigma=2)
 
-# custom_imports = dict(imports=['heatmap_head_RL_module'], allow_failed_imports=False)
 # model settings
 model = dict(
     type='TopdownPoseEstimator',
@@ -58,6 +57,8 @@ model = dict(
         flip_mode='heatmap',
         shift_heatmap=True,
     ))
+
+
 
 # base dataset settings
 dataset_type = 'CocoDataset'
