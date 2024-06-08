@@ -169,9 +169,9 @@ def main():
     runner = Runner.from_cfg(cfg)
 
     # freeze backbone weights
-    for p in runner.model.backbone.parameters():
-        p.requires_grad = False
-        # print("runner's backbone requires grad?: ", p.requires_grad)
+    # for p in runner.model.backbone.parameters():
+    #     p.requires_grad = False
+    #     # print("runner's backbone requires grad?: ", p.requires_grad)
         
     # start training
     runner.train()

@@ -74,13 +74,12 @@ class HeatmapHeadRL(BaseHead):
             init_cfg = self.default_init_cfg
         
         # Get the directory of the current file
-        current_file_dir = os.path.dirname(__file__)
-        embedding_file_name = 'matrix_text_embeddings_B32_512.npy'
-        
-        # Construct the relative path to the .npy file
-        relative_path_to_npy = os.path.join(current_file_dir, '../../../../', embedding_file_name)
+        # current_file_dir = os.path.dirname(__file__)
+        # embedding_file_name = 'matrix_text_embeddings_B32_512.npy'
+        # relative_path_to_npy = os.path.join(current_file_dir, '../../../../', embedding_file_name)
         # Normalize the path
-        absolute_path_to_npy = os.path.normpath(relative_path_to_npy)
+        # absolute_path_to_npy = os.path.normpath(relative_path_to_npy)
+        absolute_path_to_npy = '/home/rl_course_22/mmpose_RL/matrix_text_embeddings_B32_512.npy'
         # Load the .npy file
         self.emb = np.load(absolute_path_to_npy)
 
@@ -132,13 +131,13 @@ class HeatmapHeadRL(BaseHead):
             self.conv_layers = nn.Identity()
 
         if final_layer is not None:
-            # cfg = dict(
-            #     type='Conv2d',
-            #     in_channels=in_channels,
-            #     out_channels=out_channels,
-            #     kernel_size=1)
-            # cfg.update(final_layer)
-            # self.final_layer = build_conv_layer(cfg)
+            cfg = dict(
+                type='Conv2d',
+                in_channels=in_channels,
+                out_channels=out_channels,
+                kernel_size=1)
+            cfg.update(final_layer)
+            self.final_layer = build_conv_layer(cfg)
             
             self.linear_mapping = nn.Sequential(
                     nn.Linear(self.emb.shape[1], 512),
@@ -239,7 +238,7 @@ class HeatmapHeadRL(BaseHead):
         
         # map emb to 17 * 256
         if self.linear_mapping is not None and self.emb is not None:
-            self.matrix = self.linear_mapping(torch.tensor(self.emb))
+            self.matrix = self.linear_mapping(torch.tensor(self.emb).to(x.device))
             # print("This is the matrix size!!!!", self.matrix.size())
             
             # matrix mul
@@ -248,7 +247,7 @@ class HeatmapHeadRL(BaseHead):
             x = x @ self.matrix.to(x.device).T
             x = x.permute(0,3,1,2)
         else:
-            print("The matrix is NONE!!!!!")
+            print("The matrix is NONE!!!!!Load matrix properly")
         # x = self.final_layer(x)
 
         return x
