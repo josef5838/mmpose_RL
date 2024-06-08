@@ -154,6 +154,39 @@ dataset_mpii = dict(
             ])
     ],
 )
+??
+more datasets
+dataset_crowdpose = dict(
+    type='MpiiDataset',
+    data_root='data/mpii/',
+    data_mode=data_mode,
+    ann_file='annotations/mpii_train.json',
+    data_prefix=dict(img='images/'),
+    pipeline=[
+        dict(
+            type='KeypointConverter',
+            num_keypoints=17,
+            mapping=[
+                (0, 16),
+                (1, 8),
+                (2, 10),
+                (3, 5),
+                (4, 7),
+                (5, 9),
+                (6, 12),
+                (7, 14),
+                (8, 16),
+                (9, 11),
+                (10, 13),
+                (11, 15),
+            ])
+    ],
+)
+optional:
+dataset_humanart
+dataset_exlpose
+dataset_posetrack2018
+dataset_jhmdb
 
 # data loaders
 train_dataloader = dict(
@@ -164,7 +197,7 @@ train_dataloader = dict(
     dataset=dict(
         type='CombinedDataset',
         metainfo=dict(from_file='configs/_base_/datasets/coco.py'),
-        datasets=[dataset_coco, dataset_aic, dataset_mpii,??],
+        datasets=[dataset_coco, dataset_aic, dataset_mpii,dataset_crowdpose],
         pipeline=train_pipeline,
         test_mode=False,
     ))
