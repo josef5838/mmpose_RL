@@ -90,6 +90,7 @@ val_pipeline = [
 ]
 
 # train datasets
+??
 dataset_coco = dict(
     type=dataset_type,
     data_root=data_root,
@@ -98,7 +99,7 @@ dataset_coco = dict(
     data_prefix=dict(img='train2017/'),
     pipeline=[],
 )
-
+??
 dataset_aic = dict(
     type='AicDataset',
     data_root='data/aic/',
@@ -126,6 +127,33 @@ dataset_aic = dict(
             ])
     ],
 )
+??
+dataset_mpii = dict(
+    type='MpiiDataset',
+    data_root='data/mpii/',
+    data_mode=data_mode,
+    ann_file='annotations/mpii_train.json',
+    data_prefix=dict(img='images/'),
+    pipeline=[
+        dict(
+            type='KeypointConverter',
+            num_keypoints=17,
+            mapping=[
+                (0, 16),
+                (1, 8),
+                (2, 10),
+                (3, 5),
+                (4, 7),
+                (5, 9),
+                (6, 12),
+                (7, 14),
+                (8, 16),
+                (9, 11),
+                (10, 13),
+                (11, 15),
+            ])
+    ],
+)
 
 # data loaders
 train_dataloader = dict(
@@ -136,7 +164,7 @@ train_dataloader = dict(
     dataset=dict(
         type='CombinedDataset',
         metainfo=dict(from_file='configs/_base_/datasets/coco.py'),
-        datasets=[dataset_coco, dataset_aic],
+        datasets=[dataset_coco, dataset_aic, dataset_mpii,??],
         pipeline=train_pipeline,
         test_mode=False,
     ))
