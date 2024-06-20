@@ -157,7 +157,7 @@ dataset_info = dict(
             type='upper',
             swap=''),
         21:
-        dict(name='neck', id=21, color=[51, 153, 255], type='upper', swap='')
+        dict(name='neck', id=21, color=[51, 153, 255], type='upper', swap=''),
         22:
         dict(
             name='head_bottom',
@@ -244,9 +244,9 @@ dataset_info = dict(
         dict(
             link=('right_ear', 'right_shoulder'), id=18, color=[51, 153, 255]),
         19:
-        dict(link=('head_top', 'neck'), id=11, color=[51, 153, 255]),
+        dict(link=('head_top', 'neck'), id=19, color=[51, 153, 255]),
         
-        //mpii
+        # mpii
         20:
         dict(link=('right_hip', 'pelvis'), id=20, color=[255, 128, 0]),
         21:
@@ -261,7 +261,7 @@ dataset_info = dict(
         dict(link=('upper_neck', 'right_shoulder'), id=25, color=[255, 128, 0]),
         26:
         dict(link=('upper_neck', 'left_shoulder'), id=26, color=[0, 255, 0]),
-        //posetrack
+        # posetrack
         27:
         dict(link=('nose', 'head_bottom'), id=27, color=[51, 153, 255]),
         28:
@@ -272,14 +272,14 @@ dataset_info = dict(
         dict(
             link=('head_bottom', 'right_shoulder'),
             id=29,
-            color=[51, 153, 255])
-        //jhmdb
+            color=[51, 153, 255]),
+        # jhmdb
         30: dict(link=('right_hip', 'belly'), id=30, color=[255, 128, 0]),
         31: dict(link=('belly', 'left_hip'), id=31, color=[0, 255, 0]),
         32: dict(link=('belly', 'neck'), id=32, color=[51, 153, 255]),
         33: dict(link=('neck', 'head'), id=33, color=[51, 153, 255]),
         
-        //humanart21
+        # humanart21
         34:
         dict(link=('left_ankle', 'left_toe'), id=34, color=[0, 255, 0]),
         35:
@@ -298,4 +298,5 @@ dataset_info = dict(
         0.026, 0.025, 0.025, 0.035, 0.035, 0.079, 0.079, 0.072, 0.072, 0.062,
         0.062, 0.107, 0.107, 0.087, 0.087, 0.089, 0.089, 0.026, 0.026, 0.062,
         0.026, 0.026, 0.025, 0.025, 0.107, 0.089, 0.089, 0.089, 0.089
-    ])
+    ],
+)

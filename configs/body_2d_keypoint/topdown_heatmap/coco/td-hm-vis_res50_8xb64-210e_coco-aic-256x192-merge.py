@@ -135,7 +135,7 @@ train_dataloader = dict(
     sampler=dict(type='DefaultSampler', shuffle=True),
     dataset=dict(
         type='CombinedDataset',
-        metainfo=dict(from_file='configs/_base_/datasets/coco.py'),
+        metainfo=dict(from_file='configs/_base_/datasets/RL_uniform.py'),
         datasets=[dataset_coco, dataset_aic],
         pipeline=train_pipeline,
         test_mode=False,
