@@ -19,6 +19,6 @@ WORK_DIR=$4
 
 PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
 
-python tools/train_no_freeze.py --work-dir ${WORK_DIR} ${CONFIG} 
+python tools/train_no_freeze.py --work-dir ${WORK_DIR} ${CONFIG} --launcher slurm
 
     

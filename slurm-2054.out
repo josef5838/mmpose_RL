@@ -1,0 +1,19 @@
++ PARTITION=rl
++ JOB_NAME=test
++ CONFIG=/home/rl_course_22/mmpose_RL/configs/body_2d_keypoint/topdown_heatmap/coco/RL-td-hm-vis_res50_8xb64-210e_uniform-256x192-merge.py
++ WORK_DIR=/home/rl_course_22/mmpose_RL/work_dirs
+++ dirname /scratch/slurm/spool/job02054/slurm_script
++ PYTHONPATH=/scratch/slurm/spool/job02054/..:
++ python tools/train_no_freeze.py --work-dir /home/rl_course_22/mmpose_RL/work_dirs /home/rl_course_22/mmpose_RL/configs/body_2d_keypoint/topdown_heatmap/coco/RL-td-hm-vis_res50_8xb64-210e_uniform-256x192-merge.py --launcher slurm
+Traceback (most recent call last):
+  File "tools/train_no_freeze.py", line 186, in <module>
+    main()
+  File "tools/train_no_freeze.py", line 149, in main
+    dist.init_process_group(backend='nccl')
+  File "/srv/beegfs02/scratch/rl_course_22/data/conda_envs/openmmlab/lib/python3.8/site-packages/torch/distributed/distributed_c10d.py", line 595, in init_process_group
+    store, rank, world_size = next(rendezvous_iterator)
+  File "/srv/beegfs02/scratch/rl_course_22/data/conda_envs/openmmlab/lib/python3.8/site-packages/torch/distributed/rendezvous.py", line 247, in _env_rendezvous_handler
+    rank = int(_get_env_or_raise("RANK"))
+  File "/srv/beegfs02/scratch/rl_course_22/data/conda_envs/openmmlab/lib/python3.8/site-packages/torch/distributed/rendezvous.py", line 232, in _get_env_or_raise
+    raise _env_error(env_var)
+ValueError: Error initializing torch.distributed using env:// rendezvous: environment variable RANK expected, but not set

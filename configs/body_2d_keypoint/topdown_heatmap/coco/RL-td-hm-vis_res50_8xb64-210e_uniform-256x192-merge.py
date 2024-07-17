@@ -9,6 +9,8 @@ optim_wrapper = dict(optimizer=dict(
     lr=5e-4,
 ))
 
+
+
 # learning policy
 param_scheduler = [
     dict(
@@ -90,44 +92,66 @@ val_pipeline = [
 ]
 
 # train datasets
-??
 dataset_coco = dict(
     type=dataset_type,
     data_root=data_root,
     data_mode=data_mode,
     ann_file='annotations/person_keypoints_train2017.json',
     data_prefix=dict(img='train2017/'),
-    pipeline=[],
-)
-??
-dataset_aic = dict(
-    type='AicDataset',
-    data_root='data/aic/',
-    data_mode=data_mode,
-    ann_file='annotations/aic_train.json',
-    data_prefix=dict(img='ai_challenger_keypoint_train_20170902/'
-                     'keypoint_train_images_20170902/'),
     pipeline=[
         dict(
             type='KeypointConverter',
-            num_keypoints=17,
+            num_keypoints=29,
             mapping=[
-                (0, 6),
-                (1, 8),
-                (2, 10),
-                (3, 5),
-                (4, 7),
-                (5, 9),
-                (6, 12),
-                (7, 14),
-                (8, 16),
-                (9, 11),
-                (10, 13),
-                (11, 15),
-            ])
-    ],
+                (0, 0),
+                (1, 1),
+                (2, 2),
+                (3, 3),
+                (4, 4),
+                (5, 5),
+                (6, 6),
+                (7, 7),
+                (8, 8),
+                (9, 9),
+                (10, 10),
+                (11, 11),
+                (12, 12),
+                (13, 13),
+                (14, 14),
+                (15, 15),
+                (16, 16),
+            ])],
 )
-??
+# dataset_aic = dict(
+#     type='AicDataset',
+#     data_root='data/aic/',
+#     data_mode=data_mode,
+#     ann_file='annotations/aic_train.json',
+#     data_prefix=dict(img='ai_challenger_keypoint_train_20170902/'
+#                      'keypoint_train_images_20170902/'),
+#     pipeline=[
+#         dict(
+#             type='KeypointConverter',
+#             num_keypoints=29,
+#             mapping=[
+#                 (0, 6),
+#                 (1, 8),
+#                 (2, 10),
+#                 (3, 5),
+#                 (4, 7),
+#                 (5, 9),
+#                 (6, 12),
+#                 (7, 14),
+#                 (8, 16),
+#                 (9, 11),
+#                 (10, 13),
+#                 (11, 15),
+#                 (12, 20),
+#                 (13, 21)
+#             ])
+#     ],
+# )
+
 dataset_mpii = dict(
     type='MpiiDataset',
     data_root='data/mpii/',
@@ -137,56 +161,75 @@ dataset_mpii = dict(
     pipeline=[
         dict(
             type='KeypointConverter',
-            num_keypoints=17,
+            num_keypoints=29,
             mapping=[
                 (0, 16),
-                (1, 8),
-                (2, 10),
-                (3, 5),
-                (4, 7),
-                (5, 9),
-                (6, 12),
-                (7, 14),
-                (8, 16),
-                (9, 11),
-                (10, 13),
-                (11, 15),
+                (1, 14),
+                (2, 12),
+                (3, 11),
+                (4, 13),
+                (5, 15),
+                (6, 17),
+                (7, 18),
+                (8, 19),
+                (9, 20),
+                (10, 10),
+                (11, 8),
+                (12, 6),
+                (13, 5),
+                (14, 7),
+                (15, 9),
             ])
     ],
 )
-??
-more datasets
+
 dataset_crowdpose = dict(
-    type='MpiiDataset',
-    data_root='data/mpii/',
+    type='CrowdPoseDataset',
+    data_root='data/crowdpose/',
     data_mode=data_mode,
-    ann_file='annotations/mpii_train.json',
+    ann_file='annotations/mmpose_crowdpose_trainval.json',
     data_prefix=dict(img='images/'),
     pipeline=[
         dict(
             type='KeypointConverter',
-            num_keypoints=17,
+            num_keypoints=29,
             mapping=[
-                (0, 16),
-                (1, 8),
-                (2, 10),
-                (3, 5),
-                (4, 7),
-                (5, 9),
-                (6, 12),
-                (7, 14),
-                (8, 16),
-                (9, 11),
-                (10, 13),
-                (11, 15),
+                (0, 5),
+                (1, 6),
+                (2, 7),
+                (3, 8),
+                (4, 9),
+                (5, 10),
+                (6, 11),
+                (7, 12),
+                (8, 13),
+                (9, 14),
+                (10, 15),
+                (11, 16),
+                (12, 20),
+                (13, 21),
             ])
     ],
 )
-optional:
-dataset_humanart
-dataset_exlpose
-dataset_posetrack2018
-dataset_jhmdb
+dataset_combined = dict(
+    type='CombinedDataset',
+    # using new dataset meta information file
+    metainfo=dict(from_file='configs/_base_/datasets/RL_uniform.py'),
+    datasets=[dataset_coco, dataset_crowdpose, dataset_mpii],
+    # The pipeline includes typical transforms, such as loading the
+    # image and data augmentation
+    pipeline=train_pipeline,
+    sample_ratio_factor=[1, 1, 1],
+    test_mode=False,
+)
+# ??
+# more datasets
+
+# optional:
+# dataset_humanart
+# dataset_exlpose
+# dataset_posetrack2018
+# dataset_jhmdb
 
 # data loaders
 train_dataloader = dict(
@@ -194,13 +237,8 @@ train_dataloader = dict(
     num_workers=2,
     persistent_workers=True,
     sampler=dict(type='DefaultSampler', shuffle=True),
-    dataset=dict(
-        type='CombinedDataset',
-        metainfo=dict(from_file='configs/_base_/datasets/coco.py'),
-        datasets=[dataset_coco, dataset_aic, dataset_mpii,dataset_crowdpose],
-        pipeline=train_pipeline,
-        test_mode=False,
-    ))
+    dataset=dataset_combined
+    )
 val_dataloader = dict(
     batch_size=32,
     num_workers=2,

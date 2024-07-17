@@ -3,10 +3,9 @@ import argparse
 import os
 import os.path as osp
 import torch
-
+import torch.distributed as dist
 from mmengine.config import Config, DictAction
 from mmengine.runner import Runner
-
 
 
 def parse_args():
@@ -18,9 +17,9 @@ def parse_args():
         nargs='?',
         type=str,
         const='auto',
-        help='If specify checkpint path, resume from it, while if not '
-        'specify, try to auto resume from the latest checkpoint '
-        'in the work directory.')
+        help='If specify checkpoint path, resume from it, while if not '
+             'specify, try to auto resume from the latest checkpoint '
+             'in the work directory.')
     parser.add_argument(
         '--amp',
         action='store_true',
@@ -34,7 +33,7 @@ def parse_args():
         '--auto-scale-lr',
         action='store_true',
         help='whether to auto scale the learning rate according to the '
-        'actual batch size and the original batch size.')
+             'actual batch size and the original batch size.')
     parser.add_argument(
         '--show-dir',
         help='directory where the visualization images will be saved.')
@@ -57,27 +56,20 @@ def parse_args():
         nargs='+',
         action=DictAction,
         help='override some settings in the used config, the key-value pair '
-        'in xxx=yyy format will be merged into config file. If the value to '
-        'be overwritten is a list, it should be like key="[a,b]" or key=a,b '
-        'It also allows nested list/tuple values, e.g. key="[(a,b),(c,d)]" '
-        'Note that the quotation marks are necessary and that no white space '
-        'is allowed.')
+             'in xxx=yyy format will be merged into config file. If the value to '
+             'be overwritten is a list, it should be like key="[a,b]" or key=a,b '
+             'It also allows nested list/tuple values, e.g. key="[(a,b),(c,d)]" '
+             'Note that the quotation marks are necessary and that no white space '
+             'is allowed.')
     parser.add_argument(
         '--launcher',
         choices=['none', 'pytorch', 'slurm', 'mpi'],
         default='none',
         help='job launcher')
-    # When using PyTorch version >= 2.0.0, the `torch.distributed.launch`
-    # will pass the `--local-rank` parameter to `tools/train.py` instead
-    # of `--local_rank`.
     parser.add_argument('--local_rank', '--local-rank', type=int, default=0)
     args = parser.parse_args()
     if 'LOCAL_RANK' not in os.environ:
         os.environ['LOCAL_RANK'] = str(args.local_rank)
-    # if 'SLURM_NTASKS' not in os.environ:
-    #     os.environ['SLURM_NTASKS'] = str(1)
-    
-
     return args
 
 
@@ -89,7 +81,6 @@ def merge_args(cfg, args):
         cfg.val_evaluator = None
 
     cfg.launcher = args.launcher
-    
 
     # work_dir is determined in this priority: CLI > segment in file > filename
     if args.work_dir is not None:
@@ -111,7 +102,6 @@ def merge_args(cfg, args):
 
         cfg.optim_wrapper.type = 'AmpOptimWrapper'
         cfg.optim_wrapper.setdefault('loss_scale', 'dynamic')
-        
 
     # resume training
     if args.resume == 'auto':
@@ -146,35 +136,51 @@ def merge_args(cfg, args):
 
 
 def main():
+    args = parse_args()
+
+    # Initialize distributed environment
+    if args.launcher == 'none':
+        distributed = False
+    else:
+        distributed = True
+        if args.launcher == 'pytorch':
+            dist.init_process_group(backend='nccl')
+        elif args.launcher == 'slurm' or args.launcher == 'mpi':
+            dist.init_process_group(backend='nccl')
+        torch.cuda.set_device(args.local_rank)
+
     if torch.cuda.is_available():
         print(f"CUDA is available. Number of GPUs: {torch.cuda.device_count()}")
     else:
         print("CUDA is not available.")
-    args = parse_args()
 
-    # load config
+    # Load config
     cfg = Config.fromfile(args.config)
 
-    # merge CLI arguments to config
+    # Merge CLI arguments to config
     cfg = merge_args(cfg, args)
 
-    # set preprocess configs to model
+    # Set preprocess configs to model
     if 'preprocess_cfg' in cfg:
         cfg.model.setdefault('data_preprocessor',
                              cfg.get('preprocess_cfg', {}))
-    
 
-
-    # build the runner from config
+    # Build the runner from config
     runner = Runner.from_cfg(cfg)
 
-    # freeze backbone weights
-    # for p in runner.model.backbone.parameters():
-    #     p.requires_grad = False
-    #     # print("runner's backbone requires grad?: ", p.requires_grad)
-        
-    # start training
+    # Wrap model with DistributedDataParallel
+    if distributed:
+        runner.model = torch.nn.parallel.DistributedDataParallel(
+            runner.model.cuda(),
+            device_ids=[args.local_rank],
+            output_device=args.local_rank
+        )
+    else:
+        runner.model = torch.nn.DataParallel(runner.model).cuda()
+
+    # Start training
     runner.train()
+
 
 if __name__ == '__main__':
     main()
