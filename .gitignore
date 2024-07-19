@@ -136,3 +136,4 @@ docs/**/modelzoo.md
 
 # virtual linking
 work_dirs
+slurm-*

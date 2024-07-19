@@ -1,4 +1,3 @@
-# Copyright (c) OpenMMLab. All rights reserved.
 import argparse
 import os
 import os.path as osp
@@ -6,7 +5,6 @@ import torch
 import torch.distributed as dist
 from mmengine.config import Config, DictAction
 from mmengine.runner import Runner
-
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a pose model')
@@ -72,7 +70,6 @@ def parse_args():
         os.environ['LOCAL_RANK'] = str(args.local_rank)
     return args
 
-
 def merge_args(cfg, args):
     """Merge CLI arguments to config."""
     if args.no_validate:
@@ -134,7 +131,6 @@ def merge_args(cfg, args):
 
     return cfg
 
-
 def main():
     args = parse_args()
 
@@ -144,6 +140,10 @@ def main():
     else:
         distributed = True
         if args.launcher == 'pytorch':
+            os.environ['RANK'] = os.environ.get('RANK', '0')
+            os.environ['WORLD_SIZE'] = os.environ.get('WORLD_SIZE', '1')
+            os.environ['MASTER_ADDR'] = os.environ.get('MASTER_ADDR', 'localhost')
+            os.environ['MASTER_PORT'] = os.environ.get('MASTER_PORT', '12355')
             dist.init_process_group(backend='nccl')
         elif args.launcher == 'slurm' or args.launcher == 'mpi':
             dist.init_process_group(backend='nccl')
@@ -153,6 +153,10 @@ def main():
         print(f"CUDA is available. Number of GPUs: {torch.cuda.device_count()}")
     else:
         print("CUDA is not available.")
+
+    # Print information about the GPUs being used
+    print(f"Rank: {os.environ['RANK']}, Local Rank: {args.local_rank}, World Size: {os.environ['WORLD_SIZE']}")
+    print(f"Using GPU: {torch.cuda.current_device()}")
 
     # Load config
     cfg = Config.fromfile(args.config)
@@ -175,12 +179,12 @@ def main():
             device_ids=[args.local_rank],
             output_device=args.local_rank
         )
+        runner.model.train_step = runner.model.module.train_step
     else:
         runner.model = torch.nn.DataParallel(runner.model).cuda()
 
     # Start training
     runner.train()
-
 
 if __name__ == '__main__':
     main()

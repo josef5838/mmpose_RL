@@ -59,7 +59,7 @@ model = dict(
         pose_cfg=dict(
             type='HeatmapHead',
             in_channels=2048,
-            out_channels=17,
+            out_channels=29,
             loss=dict(type='KeypointMSELoss', use_target_weight=True),
             decoder=codec)),
     test_cfg=dict(
@@ -93,8 +93,8 @@ val_pipeline = [
 
 # train datasets
 dataset_coco = dict(
-    type=dataset_type,
-    data_root=data_root,
+    type='CocoDataset',
+    data_root='data/coco/',
     data_mode=data_mode,
     ann_file='annotations/person_keypoints_train2017.json',
     data_prefix=dict(img='train2017/'),
@@ -245,17 +245,8 @@ val_dataloader = dict(
     persistent_workers=True,
     drop_last=False,
     sampler=dict(type='DefaultSampler', shuffle=False, round_up=False),
-    dataset=dict(
-        type=dataset_type,
-        data_root=data_root,
-        data_mode=data_mode,
-        ann_file='annotations/person_keypoints_val2017.json',
-        bbox_file='data/coco/person_detection_results/'
-        'COCO_val2017_detections_AP_H_56_person.json',
-        data_prefix=dict(img='val2017/'),
-        test_mode=True,
-        pipeline=val_pipeline,
-    ))
+    dataset=dataset_coco
+    )
 test_dataloader = val_dataloader
 
 # evaluators
